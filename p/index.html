@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>個人ポータル</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#fff;
+  font-family:"IBM Plex Sans","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+@media (prefers-color-scheme:dark){html,body{background:#101317}}
+#わく{border:0;width:100%;height:100dvh;display:block}
+#だめ{display:none;padding:28px 24px;max-width:26rem;margin:0 auto;text-align:center;
+  color:#16191D;font-size:14px;line-height:1.85}
+@media (prefers-color-scheme:dark){#だめ{color:#E9ECF0}}
+#だめ h1{font-size:17px;margin:0 0 10px;color:#C1272D}
+</style>
+</head>
+<body>
+<iframe id="わく" title="個人ポータル"
+  allow="clipboard-write *; clipboard-read *"
+  referrerpolicy="no-referrer"></iframe>
+<div id="だめ">
+  <h1>ひらけませんでした</h1>
+  <p>リンクが途中で切れているようです。<br>
+     LINEのトークで <b>「ぽーたる」</b> と1通お送りください。<br>
+     新しいリンクをお返しします。</p>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   個人ポータルの 包みページ　　2026-09-03
+
+   なぜ要るか＝Apps Script のページを そのまま開くと、Googleが上に
+   「このアプリケーションは Google Apps Script のユーザーによって…」
+   という帯を必ず付ける。これは こちらのコードでは消せない。
+   自分のページに iframe で埋め込むと、その帯が出なくなる。
+
+   ★合言葉は 「#」のうしろ に入れる。
+     「?」に入れると サーバーのログに残るが、「#」はサーバーに送られない。
+     （中身を出すために、iframe の中では ? に付けかえる。そこは避けられない）
+   ══════════════════════════════════════════════════════════════ */
+var ポータル = 'https://script.google.com/macros/s/AKfycbz5O2Ig_05ZWsjAOFhQ0LblmaE0qOVLOaE6qatZg4smeta49ZkselxBTubZsSTSIudN_A/exec';
+
+/* 通してよい文字だけを通す。よけいなものを iframe の住所に混ぜないため。 */
+var 開ける画面 = ['home','tie','deals','status','prompt','counsel','user',
+  'ホーム','提携','ていけい','案件','あんけん','状況','じょうきょう',
+  'プロンプト','ぷろんぷと','カウンセリング','かうんせりんぐ','ユーザー','じょうほう'];
+
+(function () {
+  var なま = location.hash.replace(/^#/, '') || location.search.replace(/^\?/, '');
+  var q;
+  try { q = new URLSearchParams(なま); } catch (e) { q = null; }
+
+  var k = q ? String(q.get('k') || '') : '';
+  if (!/^[0-9a-z]{10,60}$/.test(k)) {          /* 合言葉は英数字だけ */
+    document.getElementById('わく').style.display = 'none';
+    document.getElementById('だめ').style.display = 'block';
+    return;
+  }
+
+  var p = q.get('p') || '';
+  if (開ける画面.indexOf(p) < 0) p = '';
+
+  var 問 = String(q.get('q') || '').replace(/[^0-9]/g, '');
+  if (問 && !(Number(問) >= 1 && Number(問) <= 999)) 問 = '';
+
+  document.getElementById('わく').src = ポータル + '?k=' + encodeURIComponent(k) +
+    (p ? '&p=' + encodeURIComponent(p) : '') +
+    (問 ? '&q=' + 問 : '');
+})();
+</script>
+</body>
+</html>
