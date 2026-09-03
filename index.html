@@ -59,11 +59,31 @@ function だめ(見出し, 本文, もう一度) {
     '<p class="small">うまくいかないときは、LINEのトークで<br>「ぽーたる」と1通送ってください。</p>';
 }
 
-(function () {
+/**
+ * ★どの画面を開くかを読む。
+ *   LINEは、リンクに付けた ?p=... を そのまま渡すこともあれば、
+ *   liff.state=%3Fp%3D... のように 包んで渡すこともある。
+ *   だから両方を見る。しかも liff.init() のあとに読む（SDKが包みをほどくのがそのタイミング）。
+ */
+function 画面を読む() {
   var q = new URLSearchParams(location.search);
-  var 画面 = q.get('p') || '';
-  var 問   = q.get('q') || '';
+  var p = q.get('p') || '';
+  var 問 = q.get('q') || '';
 
+  if (!p) {                                  /* 包まれたままのとき */
+    var st = q.get('liff.state');
+    if (st) {
+      try {
+        var 中 = new URLSearchParams(st.charAt(0) === '?' ? st.slice(1) : st);
+        p  = 中.get('p') || '';
+        問 = 中.get('q') || 問;
+      } catch (e) { /* 読めなければ ホーム にする */ }
+    }
+  }
+  return { 画面: p, 問: 問 };
+}
+
+(function () {
   if (typeof liff === 'undefined') {
     だめ('ひらけませんでした', 'つながりが不安定なようです。', true); return;
   }
@@ -73,6 +93,9 @@ function だめ(見出し, 本文, もう一度) {
 
     var トークン = liff.getIDToken();
     if (!トークン) { だめ('ひらけませんでした', 'LINEからの確認が受け取れませんでした。', true); return; }
+
+    var 行き先 = 画面を読む();
+    var 画面 = 行き先.画面, 問 = 行き先.問;
 
     return fetch(ポータルの窓口, {
       method: 'POST',
