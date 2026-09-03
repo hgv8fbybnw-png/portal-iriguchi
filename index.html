@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>個人ポータル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap">
+<style>
+:root{--bg:#fff;--ink:#16191D;--ink2:#4A515B;--ink3:#767E89;--line:#E4E7EB;--brand:#0F3D6E;--alert:#C1272D}
+@media (prefers-color-scheme:dark){:root{--bg:#101317;--ink:#E9ECF0;--ink2:#A7AEB8;--ink3:#7B838E;--line:#262B32;--brand:#7FAEDC;--alert:#E8827C}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;
+  font-size:15px;line-height:1.85;-webkit-font-smoothing:antialiased;font-feature-settings:"palt" 1;
+  display:flex;align-items:center;justify-content:center;min-height:100dvh;padding:24px}
+.box{max-width:26rem;width:100%;text-align:center}
+h1{font-size:17px;font-weight:700;margin:0 0 10px}
+p{margin:0;color:var(--ink2);font-size:14px}
+.ma{width:34px;height:34px;margin:0 auto 20px;border:2px solid var(--line);
+  border-top-color:var(--brand);border-radius:50%;animation:く .9s linear infinite}
+@keyframes く{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ma{animation:none;border-top-color:var(--line)}}
+.ng h1{color:var(--alert)}
+.b{display:inline-block;margin-top:18px;border:1px solid var(--brand);color:var(--brand);
+  border-radius:5px;padding:9px 20px;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer}
+.small{font-size:12.5px;color:var(--ink3);margin-top:14px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="box" id="箱">
+  <div class="ma"></div>
+  <h1>ページをひらいています</h1>
+  <p>そのままお待ちください。</p>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   個人ポータルの入口　　2026-09-03
+
+   これは「誰が押したか」をLINEに教えてもらって、
+   その人のポータルへ送り出すだけのページ。ここには何も表示しない。
+
+   ★このページに秘密は1つも置かない。
+     LINEが発行した本人証明（IDトークン）を、そのままポータルへ渡し、
+     ポータルが LINE に「これは本物か」を確かめる。
+     だから、このファイルは誰に読まれても問題ない。
+   ══════════════════════════════════════════════════════════════ */
+var LIFFのID = '__LIFF_ID__';
+var ポータルの窓口 = 'https://script.google.com/macros/s/AKfycbz5O2Ig_05ZWsjAOFhQ0LblmaE0qOVLOaE6qatZg4smeta49ZkselxBTubZsSTSIudN_A/exec';
+
+function だめ(見出し, 本文, もう一度) {
+  document.getElementById('箱').className = 'box ng';
+  document.getElementById('箱').innerHTML =
+    '<h1>' + 見出し + '</h1><p>' + 本文 + '</p>' +
+    (もう一度 ? '<a class="b" href="' + location.href + '">もう一度ためす</a>' : '') +
+    '<p class="small">うまくいかないときは、LINEのトークで<br>「ぽーたる」と1通送ってください。</p>';
+}
+
+(function () {
+  var q = new URLSearchParams(location.search);
+  var 画面 = q.get('p') || '';
+  var 問   = q.get('q') || '';
+
+  if (typeof liff === 'undefined') {
+    だめ('ひらけませんでした', 'つながりが不安定なようです。', true); return;
+  }
+
+  liff.init({ liffId: LIFFのID }).then(function () {
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+
+    var トークン = liff.getIDToken();
+    if (!トークン) { だめ('ひらけませんでした', 'LINEからの確認が受け取れませんでした。', true); return; }
+
+    return fetch(ポータルの窓口, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },  /* ★プリフライトを起こさない形 */
+      body: JSON.stringify({ やること: 'LIFF', idToken: トークン, 画面: 画面, 問: 問 })
+    }).then(function (r) { return r.json(); }).then(function (返り) {
+      if (!返り || !返り.ok || !返り.url) {
+        だめ('ひらけませんでした', (返り && 返り.なぜ) ? 返り.なぜ : 'もう一度おためしください。', true);
+        return;
+      }
+      /* ★LINEの中のブラウザではなく、外のブラウザで開く。
+           案件のリンクをLINEの中から踏むと、成果が記録されないため。 */
+      if (liff.isInClient()) {
+        liff.openWindow({ url: 返り.url, external: true });
+        setTimeout(function () { try { liff.closeWindow(); } catch (e) {} }, 1200);
+      } else {
+        location.replace(返り.url);
+      }
+    });
+  }).catch(function (e) {
+    だめ('ひらけませんでした', String(e && e.message ? e.message : e), true);
+  });
+})();
+</script>
+</body>
+</html>
