@@ -65,9 +65,12 @@ var 開ける画面 = ['home','tie','deals','status','prompt','counsel','user',
   var 問 = String(q.get('q') || '').replace(/[^0-9]/g, '');
   if (問 && !(Number(問) >= 1 && Number(問) <= 999)) 問 = '';
 
+  /* ★w=1 は「包みページを通ってきた」という印。
+     これが無いと、ポータル側が「古いリンクだ」と思って
+     包みページへ送り直し、ぐるぐる回ってしまう。消さないこと。 */
   document.getElementById('わく').src = ポータル + '?k=' + encodeURIComponent(k) +
     (p ? '&p=' + encodeURIComponent(p) : '') +
-    (問 ? '&q=' + 問 : '');
+    (問 ? '&q=' + 問 : '') + '&w=1';
 })();
 </script>
 </body>
