@@ -43,10 +43,11 @@ html,body{margin:0;padding:0;height:100%;background:#fff;
 var ポータル = 'https://script.google.com/macros/s/AKfycbz5O2Ig_05ZWsjAOFhQ0LblmaE0qOVLOaE6qatZg4smeta49ZkselxBTubZsSTSIudN_A/exec';
 
 /* 通してよい文字だけを通す。よけいなものを iframe の住所に混ぜないため。 */
-var 開ける画面 = ['home','tie','deals','status','prompt','counsel','user','chat',
+var 開ける画面 = ['home','tie','deals','status','prompt','counsel','user','chat','form',
   'ホーム','提携','ていけい','案件','あんけん','状況','じょうきょう',
   'プロンプト','ぷろんぷと','カウンセリング','かうんせりんぐ','ユーザー','じょうほう',
-  'チャット','ちゃっと','相談','そうだん'];
+  'チャット','ちゃっと','相談','そうだん',
+  'フォーム','ふぉーむ','用紙','ようし','回答','かいとう'];
 
 (function () {
   var なま = location.hash.replace(/^#/, '') || location.search.replace(/^\?/, '');
